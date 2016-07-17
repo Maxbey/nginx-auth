@@ -9,7 +9,6 @@ services:
   nginx:
     build: .
     environment:
-      - CLIENT_CACHE_REFRESH_INTERVAL=3
       - JWT_SECRET=secret
     ports:
       - "80:80"
