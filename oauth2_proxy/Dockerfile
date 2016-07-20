@@ -21,4 +21,4 @@ VOLUME /config
 
 EXPOSE 4180
 
-CMD ["oauth2_proxy", "-config", "/config/oauth2_proxy.cfg"]
+CMD ["/go/bin/oauth2_proxy", "-config", "/config/oauth2_proxy.cfg"]

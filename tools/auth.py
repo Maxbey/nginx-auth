@@ -4,6 +4,7 @@ import jwt
 import sys
 import os
 import redis
+from time import time
 import json
 from select import select
 
@@ -17,6 +18,7 @@ def get_claims():
         claims = json.load(sys.stdin)
         if not all(x in claims for x in ["service", "client"]):
             raise ValueError("service or client keys are missing from claims")
+        claims["expires-at"] = time() + 10
         return claims
     raise IOError(usage)
 
@@ -29,6 +31,7 @@ def get_url():
 
 def unknown_op(claims):
     raise NotImplementedError("operation '%s' is not supported" % sys.argv[2])
+
 
 def add_client(claims):
     redis_client.sadd(claims["service"],

@@ -1,5 +1,13 @@
 version: '2'
 services:
+  oauth2_proxy:
+    image: oauth2_proxy
+    ports:
+      - "4180:4180"
+    networks:
+      - nginx-auth
+    volumes:
+      - ./oauth2_proxy/config:/config
   redis:
     image: redis
     ports:
@@ -18,6 +26,7 @@ services:
     networks:
       - nginx-auth
     depends_on:
+      - oauth2_proxy
       - redis
 networks:
   nginx-auth:

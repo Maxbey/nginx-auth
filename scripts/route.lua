@@ -60,9 +60,22 @@ function M.authorize(svc)
 
   local c = data["client"]
   if not M.client_authorized(svc, c) then
-    ngx.log(ngx.WARN, string.format("client '%s' is not authorized to access service '%s'", client, svc))
+    ngx.log(ngx.WARN, string.format("client '%s' is not authorized to access service '%s'", c, svc))
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end
+
+  expires_at = data["expires-at"]
+  if expires_at == nil then
+    ngx.log(ngx.WARN, string.format("client '%s' token didn't contain an expiration field", c))
+    ngx.exit(ngx.HTTP_UNAUTHORIZED)
+  end
+
+  if os.time() > expires_at then
+    local ts = os.date("!%Y-%m-%dT%TZ", expires_at)
+    ngx.log(ngx.WARN, string.format("client '%s' token has expired at '%s'", c, ts))
+    ngx.exit(ngx.HTTP_UNAUTHORIZED)
+  end
+
   ngx.log(ngx.INFO, string.format("client '%s' is authorized to access service '%s'", c, svc))
 end
 
