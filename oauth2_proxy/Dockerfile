@@ -1,10 +1,8 @@
-FROM golang
+FROM golang:1.6-alpine
 
-ENV JQ_VERSION=1.5
-
-# download jq
-RUN wget -qO /bin/jq https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 && \
-    chmod u+x /bin/jq
+RUN apk update && \
+    apk add jq curl tar git && \
+    rm -rf /var/cache/apk/*
 
 # download the latest oauth2_proxy release
 RUN mkdir -p /go/src/app && \
