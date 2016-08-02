@@ -1,8 +1,15 @@
 FROM golang:1.6-alpine
 
-RUN apk update && \
-    apk add jq curl tar git && \
-    rm -rf /var/cache/apk/*
+# install su-exec (a lightweight gosu)
+RUN apk add --no-cache su-exec libcap
+
+# install all build dependencies
+RUN apk add --no-cache --virtual build-deps jq curl tar git
+
+# create oauth2_proxy user and group
+RUN addgroup -S oauth2_proxy && \
+    adduser -D -S -s /sbin/nologin -G oauth2_proxy oauth2_proxy
+
 
 # download the latest oauth2_proxy release
 RUN mkdir -p /go/src/app && \
@@ -15,8 +22,18 @@ RUN mkdir -p /go/src/app && \
 RUN go get -d -v github.com/bitly/oauth2_proxy && \
     go install -v github.com/bitly/oauth2_proxy
 
+# cleanup
+RUN apk del build-deps && \
+    rm -rf /var/cache/apk/*
+
 VOLUME /config
+
+# a non root user can't bind to localhost on network='host' mode
+# unless app doesn't have the net_bind_service cap
+# https://github.com/docker/docker/issues/8460
+RUN setcap 'cap_net_bind_service=+ep' /go/bin/oauth2_proxy
 
 EXPOSE 4180
 
-CMD ["/go/bin/oauth2_proxy", "-config", "/config/oauth2_proxy.cfg"]
+ENTRYPOINT ["su-exec", "oauth2_proxy", "oauth2_proxy"]
+CMD ["-config", "/config/oauth2_proxy.cfg"]
